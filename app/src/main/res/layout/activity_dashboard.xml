@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".DashboardActivity">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:background="@color/blue"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/civ_profile_pic"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:src="@mipmap/ic_launcher"
+            android:layout_centerVertical="true"
+            android:layout_marginTop="5dp" />
+
+        <TextView
+            android:id="@+id/tv_profile_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="10dp"
+            android:paddingEnd="20dp"
+            android:paddingStart="10dp"
+            android:layout_toEndOf="@+id/civ_profile_pic"
+            android:backgroundTint="@color/black"
+            android:fontFamily="@font/muli_bold"
+            android:padding="10dp"
+            android:text="Your Name"
+            android:textSize="18sp"
+            android:textStyle="italic" />
+
+
+    </RelativeLayout>
+
+    <com.google.android.material.tabs.TabLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/lightGreen"
+        app:tabSelectedTextColor="@color/white"
+        app:tabIndicatorColor="@color/purple_200"
+        app:tabTextColor="@color/black"
+        app:tabIndicatorFullWidth="false"
+        app:tabIndicatorHeight="3dp"
+        android:id="@+id/tab_layout_home"/>
+
+    <androidx.viewpager.widget.ViewPager
+        android:id="@+id/home_viewPager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        />
+
+
+
+</LinearLayout>

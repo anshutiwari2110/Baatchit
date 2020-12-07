@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/doodle_bg_msg"
+    tools:context=".MessageActivity">
+
+    <RelativeLayout
+        android:id="@+id/rl_user"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/blue"
+        android:padding="10dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/iv_msg_back"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:backgroundTint="@color/black"
+            android:onClick="moveToChat"
+            android:src="@drawable/ic_back" />
+
+        <ImageView
+            android:id="@+id/iv_video_call"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:backgroundTint="@color/black"
+            android:onClick="moveToCalling"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="20dp"
+            android:src="@drawable/ic_video_call" />
+
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/civ_profile_pic"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="15dp"
+            android:layout_marginTop="5dp"
+            android:onClick="viewUserProfile"
+            android:layout_toEndOf="@+id/iv_msg_back"
+            app:civ_border_color="@color/purple_700"
+            app:civ_border_width="2dp" />
+
+        <TextView
+            android:id="@+id/tv_user_profile_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginStart="10dp"
+            android:layout_toEndOf="@+id/civ_profile_pic"
+            android:backgroundTint="@color/black"
+            android:fontFamily="@font/muli_bold"
+            android:text="Your Name"
+            android:textSize="18sp"
+            android:textStyle="italic" />
+
+        <TextView
+            android:id="@+id/tv_user_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/tv_user_profile_name"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="5dp"
+            android:layout_toEndOf="@+id/civ_profile_pic"
+            android:backgroundTint="@color/black"
+            android:fontFamily="@font/muli_bold"
+            android:padding="5dp"
+            android:paddingStart="2dp"
+            android:paddingEnd="2dp"
+            android:text="Status"
+            android:textStyle="italic" />
+
+
+    </RelativeLayout>
+
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/fab_send_msg"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_centerVertical="true"
+        android:layout_marginStart="10dp"
+        android:layout_marginBottom="5dp"
+        android:layout_marginEnd="5dp"
+        android:src="@drawable/send_icon" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_msg"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginBottom="10dp"
+        android:layout_above="@+id/rl_text_msg"
+        android:layout_below="@+id/rl_user" />
+
+
+    <RelativeLayout
+
+        android:id="@+id/rl_text_msg"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="5dp"
+        android:layout_toStartOf="@+id/fab_send_msg"
+        android:background="@drawable/bg_message_text"
+        android:padding="5dp">
+
+        <EditText
+            android:id="@+id/et_message"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:background="#00000000"
+            android:fontFamily="@font/muli_bold"
+            android:hint="Type your message..."
+            android:maxHeight="300dp"
+            android:paddingStart="10dp"
+            android:paddingTop="5dp"
+            android:paddingEnd="10dp"
+            android:paddingBottom="5dp" />
+
+    </RelativeLayout>
+
+</RelativeLayout>

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".OnBoardActivity">
+
+    <androidx.viewpager.widget.ViewPager
+        android:id="@+id/view_pager_onboard"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+    </androidx.viewpager.widget.ViewPager>
+
+    <LinearLayout
+        android:id="@+id/ll_dots"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:orientation="horizontal">
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:background="@drawable/bg_message_text"
+        android:layout_margin="10dp">
+
+        <TextView
+            android:id="@+id/tv_skip_onboard"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="SKIP"
+            android:layout_gravity="center_vertical"
+            android:textColor="@color/black"
+            android:paddingStart="20dp"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:textSize="14sp"
+            android:fontFamily="@font/muli_bold_italic"
+            />
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_skip"
+            android:layout_marginTop="10dp"
+            android:layout_marginEnd="10dp"/>
+
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/btn_slide_back"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_margin="10dp"
+        android:layout_marginStart="10dp"
+        android:background="@drawable/bg_back_onboard"
+        android:fontFamily="@font/muli_bold_italic"
+        android:text="back"
+
+        android:visibility="visible" />
+
+    <Button
+        android:id="@+id/btn_slide_next"
+        android:background="@drawable/bg_next_onboard"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_margin="10dp"
+        android:layout_marginStart="10dp"
+        android:fontFamily="@font/muli_bold_italic"
+        android:text="next" />
+
+
+</RelativeLayout>
