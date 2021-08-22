@@ -14,34 +14,24 @@ public class SplashActivity extends AppCompatActivity {
     private static int SPLASH_TIME = 5000;
     LottieAnimationView mLotIcon;
     TextView mTvAppName;
-    SharedPreferences sharedPreferences;
+    TextView mTvEncryptionText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
         mTvAppName = findViewById(R.id.tv_appName);
+        mTvEncryptionText = findViewById(R.id.tv_encryption);
         mLotIcon = findViewById(R.id.lottie_appIcon);
 
         mLotIcon.animate().translationX(3000).setDuration(1000).setStartDelay(4000);
         mTvAppName.animate().translationX(3000).setDuration(1000).setStartDelay(4000);
+        mTvEncryptionText.animate().translationX(3000).setDuration(1000).setStartDelay(4000);
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                sharedPreferences = getSharedPreferences("onBoardingScreen", MODE_PRIVATE);
-
-                boolean isFirstTime = sharedPreferences.getBoolean("firstTime", true);
-
-                if (isFirstTime) {
-                    SharedPreferences.Editor editor = sharedPreferences.edit();
-                    editor.putBoolean("firstTime",false);
-                    editor.commit();
-                    startActivity(new Intent(SplashActivity.this, OnBoardActivity.class));
-                    finish();
-                }else {
                     startActivity(new Intent(SplashActivity.this, LoginActivity.class));
                     finish();
-                }
             }
         },SPLASH_TIME);
 

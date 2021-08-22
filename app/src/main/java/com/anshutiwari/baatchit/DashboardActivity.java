@@ -10,7 +10,7 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.anshutiwari.baatchit.VideoConfig.CallingActivity;
+
 import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -45,8 +45,7 @@ public class DashboardActivity extends AppCompatActivity {
     TabLayout mTabHome;
 
     String offlineTime;
-    //Video Call
-    String calledBy;
+
     DatabaseReference userRef;
     private String currentUserId;
     List<User> userList;
@@ -147,29 +146,8 @@ public class DashboardActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        checkForReceivingCall();
     }
 
-    private void checkForReceivingCall() {
-
-            userRef.child(currentUserId).child("Ringing").addValueEventListener(new ValueEventListener() {
-                @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
-                    if(dataSnapshot.hasChild("ringing")){
-                        calledBy = dataSnapshot.child("ringing").getValue().toString();
-                        Intent callingIntent = new Intent(DashboardActivity.this , CallingActivity.class);
-                        callingIntent.putExtra("visit_user_id" , calledBy);
-                        startActivity(callingIntent);
-                    }
-                }
-
-                @Override
-                public void onCancelled(DatabaseError databaseError) {
-
-                }
-            });
-
-    }
 
     @Override
     protected void onResume() {

@@ -38,7 +38,7 @@
             android:padding="10dp"
             android:text="Your Name"
             android:textSize="18sp"
-            android:textStyle="italic" />
+            android:textStyle="bold" />
 
 
     </RelativeLayout>

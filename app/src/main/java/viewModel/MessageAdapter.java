@@ -26,7 +26,16 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
+import java.io.UnsupportedEncodingException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.SecretKeySpec;
 
 import Model.Chat;
 import Model.User;
@@ -36,6 +45,11 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageH
 
     Context context;
     List<Chat> chatList;
+
+    //Encryption Key
+    private byte encryptionKey[] = {12, -81, 64, 49, 36, 25, -16, 9, 4, 100, 121, -69, -22, 21, 10, 98,12, -81, 64, 49, 36, -25, -16, 9, 7, 101, 121, 75, -22, 21, 10, -98};
+    private Cipher decipher;
+    private SecretKeySpec secretKeySpec;
 
     public static final int MSG_TYPE_LEFT = 0;
     public static final int MSG_TYPE_RIGHT = 1;
@@ -60,11 +74,26 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageH
 
     @Override
     public void onBindViewHolder(@NonNull MessageAdapter.MessageHolder holder, int position) {
-        Chat chat = chatList.get(position);
-        holder.mTvShowMsg.setText(chat.getMessage());
-        holder.mTvMsgTime.setText(chat.getMsgTime());
 
-        //Todo for showing date of sent messages in the message activity(It is commented for the time being)
+        try {
+            //Secret key specification
+            secretKeySpec = new SecretKeySpec(encryptionKey, "AES");
+            Chat chat = chatList.get(position);
+            String decryptedMessage = "default";
+
+            String encryptedMessage = chat.getMessage();
+            try {
+                decipher = Cipher.getInstance("AES");
+            } catch (NoSuchAlgorithmException e) {
+                e.printStackTrace();
+            } catch (NoSuchPaddingException e) {
+                e.printStackTrace();
+            }
+            decryptedMessage = AESDecryptionMethod(encryptedMessage);
+            holder.mTvShowMsg.setText(decryptedMessage);
+            holder.mTvMsgTime.setText(chat.getMsgTime());
+
+            //Todo for showing date of sent messages in the message activity(It is commented for the time being)
 
         /*String date = "default";
         for (int i =0;i<chatList.size();i++){
@@ -81,18 +110,22 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageH
         }*/
 
 
+            int lastMsgIndex = chatList.size() - 1;
+            if (position == lastMsgIndex) {
 
-        int lastMsgIndex = chatList.size() - 1;
-        if (position == lastMsgIndex) {
-
-            if (chat.getisSeen()) {
-                holder.mTvSeen.setText("Seen");
+                if (chat.getisSeen()) {
+                    holder.mTvSeen.setText("Seen");
+                } else {
+                    holder.mTvSeen.setText("Delivered");
+                }
             } else {
-                holder.mTvSeen.setText("Delivered");
+                holder.mTvSeen.setVisibility(View.GONE);
             }
-        } else {
-            holder.mTvSeen.setVisibility(View.GONE);
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+
 
     }
 
@@ -128,5 +161,26 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageH
             return MSG_TYPE_LEFT;
         }
     }
+
+    private String AESDecryptionMethod(String string) throws UnsupportedEncodingException {
+        byte[] encryptedByte = string.getBytes("ISO-8859-1");
+
+        String decryptedString = null;
+        byte[] decryption;
+
+        try {
+            decipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
+            decryption = decipher.doFinal(encryptedByte);
+            decryptedString = new String(decryption);
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+        } catch (BadPaddingException e) {
+            e.printStackTrace();
+        } catch (IllegalBlockSizeException e) {
+            e.printStackTrace();
+        }
+        return decryptedString;
+    }
+
 }
 

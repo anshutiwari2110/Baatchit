@@ -15,7 +15,6 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.anshutiwari.baatchit.VideoConfig.CallingActivity;
 import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -28,11 +27,20 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
+import java.io.UnsupportedEncodingException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.SecretKeySpec;
 
 import Model.Chat;
 import Model.User;
@@ -70,8 +78,13 @@ public class MessageActivity extends AppCompatActivity {
     String msgTime;
     String msgDate;
 
-    ValueEventListener seenListener;
+    //Encryption Key
+    private byte encryptionKey[] = {12, -81, 64, 49, 36, 25, -16, 9, 4, 100, 121, -69, -22, 21, 10, 98,12, -81, 64, 49, 36, -25, -16, 9, 7, 101, 121, 75, -22, 21, 10, -98};
+    private Cipher cipher;
+    private Cipher decipher;
+    private SecretKeySpec secretKeySpec;
 
+    ValueEventListener seenListener;
 
 
     @Override
@@ -93,16 +106,12 @@ public class MessageActivity extends AppCompatActivity {
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getApplicationContext());
         linearLayoutManager.setStackFromEnd(true);
         mRcMessage.setLayoutManager(linearLayoutManager);
-
-
+        //Secret key specification
+        secretKeySpec = new SecretKeySpec(encryptionKey, "AES");
 
         intent = getIntent();
 
         userId = intent.getStringExtra("visit_user_id");
-        if (userId == null){
-            return;
-        }
-
 
         //Coding for Dailog
         showUserInfo(userId);
@@ -127,7 +136,7 @@ public class MessageActivity extends AppCompatActivity {
 
                 if (!status.equals("online")) {
                     mTvUserStatus.setText(status);
-                }else{
+                } else {
                     mTvUserStatus.setText(status);
                 }
 
@@ -143,19 +152,23 @@ public class MessageActivity extends AppCompatActivity {
         mFABSend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
-                String msg = mEtMessage.getText().toString();
-                calendar = Calendar.getInstance();
-                SimpleDateFormat time = new SimpleDateFormat("hh:mm a");
-                msgTime = time.format(calendar.getTime());
-                SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
-                msgDate = dateFormat.format(calendar.getTime());
-                if (!msg.equals("")) {
-                    sendMessage(fUser.getUid(), userId, msg,msgDate,msgTime);
-                } else {
-                    Toast.makeText(MessageActivity.this, "Message can't be empty", Toast.LENGTH_SHORT).show();
+                try {
+                    String msg = mEtMessage.getText().toString();
+                    calendar = Calendar.getInstance();
+                    SimpleDateFormat time = new SimpleDateFormat("hh:mm a");
+                    msgTime = time.format(calendar.getTime());
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+                    msgDate = dateFormat.format(calendar.getTime());
+                    if (!msg.equals("")) {
+                        sendMessage(fUser.getUid(), userId, msg, msgDate, msgTime);
+                    } else {
+                        Toast.makeText(MessageActivity.this, "Message can't be empty", Toast.LENGTH_SHORT).show();
+                    }
+                    mEtMessage.setText("");
+                }catch (Exception e){
+                    e.printStackTrace();
                 }
-                mEtMessage.setText("");
+
             }
         });
 
@@ -219,38 +232,50 @@ public class MessageActivity extends AppCompatActivity {
         });
     }
 
-    private void sendMessage(String sender, String receiver, String message,String msgDate, String msgTime) {
+    private void sendMessage(String sender, String receiver, String message, String msgDate, String msgTime) {
         DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
 
-        String msgMillis = String.valueOf(System.currentTimeMillis());
-        HashMap<String, Object> hashMap = new HashMap<>();
-        hashMap.put("sender", sender);
-        hashMap.put("receiver", receiver);
-        hashMap.put("message", message);
-        hashMap.put("msgDate", msgDate);
-        hashMap.put("msgTime", msgTime);
-        hashMap.put("isSeen", false);
-        hashMap.put("msgMillis", msgMillis);
+        //Cipher the text
+        try {
+            cipher = Cipher.getInstance("AES");
+            String encrypt = AESEncryptionMethod(message);
+            String msgMillis = String.valueOf(System.currentTimeMillis());
+            HashMap<String, Object> hashMap = new HashMap<>();
+            hashMap.put("sender", sender);
+            hashMap.put("receiver", receiver);
+            hashMap.put("message", encrypt);
+            hashMap.put("msgDate", msgDate);
+            hashMap.put("msgTime", msgTime);
+            hashMap.put("isSeen", false);
+            hashMap.put("msgMillis", msgMillis);
 
-        reference.child("Chats").push().setValue(hashMap);
+            reference.child("Chats").push().setValue(hashMap);
 
-        DatabaseReference chatRef = FirebaseDatabase.getInstance().getReference("Chatlist")
-                .child(fUser.getUid())
-                .child(userId);
+            DatabaseReference chatRef = FirebaseDatabase.getInstance().getReference("Chatlist")
+                    .child(fUser.getUid())
+                    .child(userId);
 
-        chatRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (!snapshot.exists()) {
-                    chatRef.child("id").setValue(userId);
+            chatRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (!snapshot.exists()) {
+                        chatRef.child("id").setValue(userId);
+                    }
                 }
-            }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
 
-            }
-        });
+                }
+            });
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (NoSuchPaddingException e) {
+            e.printStackTrace();
+        }
+
+
+
 
     }
 
@@ -290,14 +315,15 @@ public class MessageActivity extends AppCompatActivity {
     }
 
     public void status(String status) {
+
         reference = FirebaseDatabase.getInstance().getReference().child("User").child(fUser.getUid());
 
         HashMap<String, Object> hashMap = new HashMap<>();
         hashMap.put("status", status);
 
         reference.updateChildren(hashMap);
-    }
 
+    }
 
     @Override
     protected void onResume() {
@@ -309,7 +335,7 @@ public class MessageActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        calendar=Calendar.getInstance();
+        calendar = Calendar.getInstance();
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy hh:mm a");
         offlineTime = simpleDateFormat.format(calendar.getTime());
         reference.removeEventListener(seenListener);
@@ -321,9 +347,28 @@ public class MessageActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    public void moveToCalling(View view) {
-        Intent callingIntent = new Intent(MessageActivity.this,CallingActivity.class);
-        callingIntent.putExtra("visit_user_id",userId);
-        startActivity(callingIntent);
+    private String AESEncryptionMethod(String string) {
+        byte[] stringByte = string.getBytes();
+        byte[] encryptedByte = new byte[stringByte.length];
+
+        try {
+            cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
+            encryptedByte = cipher.doFinal(stringByte);
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+        } catch (BadPaddingException e) {
+            e.printStackTrace();
+        } catch (IllegalBlockSizeException e) {
+            e.printStackTrace();
+        }
+        String returnString = null;
+
+        try {
+            returnString = new String(encryptedByte, "ISO-8859-1");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        return returnString;
     }
+
 }

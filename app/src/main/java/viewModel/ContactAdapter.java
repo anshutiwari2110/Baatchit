@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -13,7 +12,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.anshutiwari.baatchit.MessageActivity;
 import com.anshutiwari.baatchit.R;
-import com.anshutiwari.baatchit.VideoConfig.CallingActivity;
 import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -21,10 +19,18 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
+import java.io.UnsupportedEncodingException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.SecretKeySpec;
 
 import Model.Chat;
 import Model.User;
@@ -35,8 +41,14 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ContactH
     Context context;
     List<User> userList;
     private boolean isChat;
-    String lastMessage;
+    String lastEncryptedMessage;
+    String decryptedMessage;
     String lastMsgDate;
+
+    //Encryption Key
+    private byte encryptionKey[] = {12, -81, 64, 49, 36, 25, -16, 9, 4, 100, 121, -69, -22, 21, 10, 98,12, -81, 64, 49, 36, -25, -16, 9, 7, 101, 121, 75, -22, 21, 10, -98};
+    private Cipher decipher;
+    private SecretKeySpec secretKeySpec;
 
     public ContactAdapter(Context context, List<User> userList, boolean isChat) {
         this.context = context;
@@ -62,7 +74,7 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ContactH
         }
 
         if (isChat) {
-            lastMsg(user.getId(), holder.mTvLastMsg, holder.mTvUnseenMsg,holder.mTvLastMsgDate);
+            lastMsg(user.getId(), holder.mTvLastMsg, holder.mTvUnseenMsg, holder.mTvLastMsgDate);
         } else {
             holder.mTvLastMsgDate.setVisibility(View.GONE);
             holder.mTvLastMsg.setText(user.getAbout());
@@ -78,15 +90,6 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ContactH
             }
         });
 
-        holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                Intent callingIntent = new Intent(context, CallingActivity.class);
-                callingIntent.putExtra("visit_user_id",user.getId());
-                context.startActivity(callingIntent);
-                return true;
-            }
-        });
     }
 
     @Override
@@ -114,51 +117,96 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ContactH
     }
 
     private void lastMsg(String userId, TextView mTvLastMsg, TextView mTvUnseenMsg, TextView mTvLastMsgDate) {
-        lastMessage = "default";
-        lastMsgDate = "dd/mm/yyyy";
-        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
-        DatabaseReference reference = FirebaseDatabase.getInstance().getReference("Chats");
 
-        reference.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                int unread = 0;
-                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                    Chat chat = dataSnapshot.getValue(Chat.class);
-                    if (chat.getReceiver().equals(userId) && chat.getSender().equals(firebaseUser.getUid()) ||
-                            chat.getReceiver().equals(firebaseUser.getUid()) && chat.getSender().equals(userId)) {
-                        lastMessage = chat.getMessage();
-                        lastMsgDate = chat.getMsgDate();
+        try {
+            lastEncryptedMessage = "default";
+            lastMsgDate = "dd/mm/yyyy";
+            FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+            DatabaseReference reference = FirebaseDatabase.getInstance().getReference("Chats");
 
+            reference.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    int unread = 0;
+                    decryptedMessage = "default";
+                    for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                        //Secret key specification
+                        secretKeySpec = new SecretKeySpec(encryptionKey, "AES");
+
+                        Chat chat = dataSnapshot.getValue(Chat.class);
+                        if (chat.getReceiver().equals(userId) && chat.getSender().equals(firebaseUser.getUid()) ||
+                                chat.getReceiver().equals(firebaseUser.getUid()) && chat.getSender().equals(userId)) {
+                            lastEncryptedMessage = chat.getMessage();
+
+                            try {
+                                decipher = Cipher.getInstance("AES");
+                            } catch (NoSuchAlgorithmException e) {
+                                e.printStackTrace();
+                            } catch (NoSuchPaddingException e) {
+                                e.printStackTrace();
+                            }
+                            try {
+                                decryptedMessage = AESDecryptionMethod(lastEncryptedMessage);
+                            } catch (UnsupportedEncodingException e) {
+                                e.printStackTrace();
+                            }
+
+                            lastMsgDate = chat.getMsgDate();
+
+                        }
+                        if (chat.getReceiver().equals(firebaseUser.getUid()) && chat.getSender().equals(userId) && !chat.getisSeen()) {
+                            unread++;
+                        }
                     }
-                    if (chat.getReceiver().equals(firebaseUser.getUid()) && chat.getSender().equals(userId) && !chat.getisSeen()) {
-                        unread++;
+
+                    if (unread == 0) {
+                        mTvUnseenMsg.setVisibility(View.GONE);
+                    } else {
+                        mTvUnseenMsg.setVisibility(View.VISIBLE);
+                        mTvUnseenMsg.setText(" " + String.valueOf(unread) + " ");
                     }
+
+                    switch (decryptedMessage) {
+                        case "default":
+                            mTvLastMsg.setText("Start the conversation");
+                            break;
+                        default:
+                            mTvLastMsg.setText(decryptedMessage);
+                            mTvLastMsgDate.setText(lastMsgDate);
+                            break;
+                    }
+//                    decryptedMessage = "default";
                 }
 
-                if (unread == 0) {
-                    mTvUnseenMsg.setVisibility(View.GONE);
-                } else {
-                    mTvUnseenMsg.setVisibility(View.VISIBLE);
-                    mTvUnseenMsg.setText(" "+String.valueOf(unread)+" ");
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+
                 }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-                switch (lastMessage) {
-                    case "default":
-                        mTvLastMsg.setText("Start the conversation");
-                        break;
-                    default:
-                        mTvLastMsg.setText(lastMessage);
-                        mTvLastMsgDate.setText(lastMsgDate);
-                        break;
-                }
-                lastMessage = "default";
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
-            }
-        });
     }
+
+    private String AESDecryptionMethod(String string) throws UnsupportedEncodingException {
+        byte[] encryptedByte = string.getBytes("ISO-8859-1");
+
+        String decryptedString = null;
+        byte[] decryption;
+
+        try {
+            decipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
+            decryption = decipher.doFinal(encryptedByte);
+            decryptedString = new String(decryption);
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+        } catch (BadPaddingException e) {
+            e.printStackTrace();
+        } catch (IllegalBlockSizeException e) {
+            e.printStackTrace();
+        }
+        return decryptedString;
+    }
+
 }

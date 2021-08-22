@@ -26,16 +26,6 @@
             android:onClick="moveToChat"
             android:src="@drawable/ic_back" />
 
-        <ImageView
-            android:id="@+id/iv_video_call"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:backgroundTint="@color/black"
-            android:onClick="moveToCalling"
-            android:layout_alignParentEnd="true"
-            android:layout_marginEnd="20dp"
-            android:src="@drawable/ic_video_call" />
 
 
         <de.hdodenhof.circleimageview.CircleImageView

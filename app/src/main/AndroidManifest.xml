@@ -15,9 +15,7 @@
         android:roundIcon="@drawable/baatchit_logo"
         android:supportsRtl="true"
         android:theme="@style/Theme.Baatchit">
-        <activity android:name=".VideoConfig.CallingActivity"></activity>
-        <activity android:name=".VideoConfig.VideoCallActivity" />
-        <activity android:name=".OnBoardActivity" />
+        
         <activity android:name=".MessageActivity" />
         <activity android:name=".SignUpActivity" />
         <activity android:name=".DashboardActivity" />
@@ -34,22 +32,6 @@
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />
 
-        <service
-            android:name="Notification.MyFirebaseIdService"
-            android:enabled="true"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
-            </intent-filter>
-        </service>
-        <service
-            android:name="Notification.MyFirebaseMessaging"
-            android:enabled="true"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="com.google.firebase.MESSAGING_EVENT" />
-            </intent-filter>
-        </service>
     </application>
 
 </manifest>
